@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Status Checker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface-color: #1e293b;
+            --border-color: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-green: #22c55e;
+            --accent-yellow: #eab308;
+            --accent-red: #ef4444;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-primary); line-height: 1.5; min-height: 100vh; display: flex; flex-direction: column; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; width: 100%; }
+        header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.025em; }
+        .stats-summary { display: flex; gap: 1rem; }
+        .stat-badge { display: flex; align-items: center; padding: 0.5rem 1rem; border-radius: 9999px; background-color: var(--surface-color); border: 1px solid var(--border-color); font-size: 0.875rem; font-weight: 500; }
+        .stat-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 0.5rem; }
+        .dot-green { background-color: var(--accent-green); } .dot-yellow { background-color: var(--accent-yellow); } .dot-red { background-color: var(--accent-red); }
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .service-card { background-color: var(--surface-color); border: 1px solid var(--border-color); border-radius: 0.75rem; padding: 1.5rem; box-shadow: var(--shadow); transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative; overflow: hidden; }
+        .service-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); border-color: #475569; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+        .service-name { font-weight: 600; font-size: 1.125rem; color: var(--text-primary); }
+        .service-url { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; word-break: break-all; }
+        .status-indicator { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500; padding: 0.25rem 0.75rem; border-radius: 9999px; background-color: rgba(255, 255, 255, 0.05); }
+        .status-pulse { width: 8px; height: 8px; border-radius: 50%; position: relative; }
+        .status-pulse::after { content: ''; position: absolute; top: -4px; left: -4px; right: -4px; bottom: -4px; border-radius: 50%; opacity: 0.4; animation: pulse 2s cubic-bezier(0, 0, 0.2, 1) infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.5); opacity: 0; } 100% { transform: scale(1); opacity: 0.4; } }
+        .status-green { color: var(--accent-green); } .bg-green { background-color: var(--accent-green); } .bg-pulse-green::after { background-color: var(--accent-green); }
+        .status-yellow { color: var(--accent-yellow); } .bg-yellow { background-color: var(--accent-yellow); } .bg-pulse-yellow::after { background-color: var(--accent-yellow); }
+        .status-red { color: var(--accent-red); } .bg-red { background-color: var(--accent-red); } .bg-pulse-red::after { background-color: var(--accent-red); }
+        .last-checked { font-size: 0.75rem; color: var(--text-secondary); margin-top: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .controls { display: flex; justify-content: center; align-items: center; margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 2rem; color: var(--text-secondary); font-size: 0.875rem; }
+        .refresh-btn { background-color: #3b82f6; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center; gap: 0.5rem; }
+        .refresh-btn:hover { background-color: #2563eb; }
+        .refresh-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+        .refresh-icon { width: 16px; height: 16px; transition: transform 0.5s ease; }
+        .spinning { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @media (max-width: 640px) { .services-grid { grid-template-columns: 1fr; } header { flex-direction: column; align-items: flex-start; } .stats-summary { width: 100%; justify-content: space-between; flex-wrap: wrap; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Service Status Checker</h1>
+            <div class="stats-summary">
+                <div class="stat-badge"><span class="stat-dot dot-green"></span><span id="count-operational">0</span> Operational</div>
+                <div class="stat-badge"><span class="stat-dot dot-yellow"></span><span id="count-issues">0</span> Issues</div>
+                <div class="stat-badge"><span class="stat-dot dot-red"></span><span id="count-down">0</span> Down</div>
+            </div>
+        </header>
+        <div id="services-grid" class="services-grid"></div>
+        <div class="controls">
+            <div style="margin-right: auto;">Auto-refreshing in <span id="countdown">300</span>s</div>
+            <button id="refresh-btn" class="refresh-btn">
+                <svg class="refresh-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                Refresh Now
+            </button>
+        </div>
+    </div>
+    <script>
+        const services = [
+            { name: "Google", url: "https://www.google.com" },
+            { name: "GitHub", url: "https://github.com" },
+            { name: "Stack Overflow", url: "https://stackoverflow.com" },
+            { name: "Bing", url: "https://www.bing.com" },
+            { name: "Example.com", url: "https://example.com" },
+            { name: "Non-Existent Service", url: "https://this-domain-does-not-exist-12345.com" }
+        ];
+        const REFRESH_INTERVAL = 300000; const TIMEOUT_MS = 5000;
+        let lastUpdated = null; let countdownTimer = null; let countdownValue = REFRESH_INTERVAL / 1000;
+        const grid = document.getElementById('services-grid'); const refreshBtn = document.getElementById('refresh-btn'); const refreshIcon = refreshBtn.querySelector('.refresh-icon'); const countdownEl = document.getElementById('countdown');
+        function renderServices() {
+            grid.innerHTML = '';
+            services.forEach((service, index) => {
+                const card = document.createElement('div'); card.className = 'service-card'; card.id = `service-${index}`;
+                card.innerHTML = `<div class="card-header"><div><div class="service-name">${service.name}</div><div class="service-url">${service.url}</div></div><div class="status-indicator" id="status-indicator-${index}"><div class="status-pulse bg-pulse-yellow bg-yellow"></div><span class="status-text">Checking...</span></div></div><div class="last-checked" id="last-checked-${index}">Waiting for update...</div>`;
+                grid.appendChild(card);
+            });
+        }
+        function updateStats() {
+            const statuses = Array.from(document.querySelectorAll('.status-text')).map(el => el.textContent);
+            document.getElementById('count-operational').textContent = statuses.filter(s => s === 'Operational').length;
+            document.getElementById('count-issues').textContent = statuses.filter(s => s === 'Issues').length;
+            document.getElementById('count-down').textContent = statuses.filter(s => s === 'Down' || s.includes('Error')).length;
+        }
+        async function checkService(service, index) {
+            const statusIndicator = document.getElementById(`status-indicator-${index}`);
+            const statusText = statusIndicator.querySelector('.status-text'); const statusPulse = statusIndicator.querySelector('.status-pulse'); const lastChecked = document.getElementById(`last-checked-${index}`);
+            statusText.textContent = 'Checking...'; statusIndicator.className = 'status-indicator status-yellow'; statusPulse.className = 'status-pulse bg-pulse-yellow bg-yellow';
+            const startTime = Date.now(); let status = 'down';
+            try {
+                const controller = new AbortController(); const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+                await fetch(service.url, { method: 'GET', mode: 'no-cors', signal: controller.signal, cache: 'no-store' });
+                clearTimeout(timeoutId); status = 'operational';
+            } catch (error) { status = 'down'; }
+            const latency = Date.now() - startTime; const timestamp = new Date().toLocaleTimeString();
+            if (status === 'operational') {
+                statusText.textContent = 'Operational'; statusIndicator.className = 'status-indicator status-green'; statusPulse.className = 'status-pulse bg-pulse-green bg-green';
+                lastChecked.innerHTML = `<span>✓ Checked at ${timestamp} (${latency}ms)</span>`;
+            } else {
+                statusText.textContent = 'Down'; statusIndicator.className = 'status-indicator status-red'; statusPulse.className = 'status-pulse bg-pulse-red bg-red';
+                lastChecked.innerHTML = `<span>⚠ Connection failed at ${timestamp}</span>`;
+            }
+            updateStats();
+        }
+        async function checkAllServices() {
+            refreshBtn.disabled = true; refreshIcon.classList.add('spinning');
+            await Promise.all(services.map((service, index) => checkService(service, index)));
+            lastUpdated = new Date(); refreshBtn.disabled = false; refreshIcon.classList.remove('spinning'); resetCountdown();
+        }
+        function startCountdown() {
+            if (countdownTimer) clearInterval(countdownTimer); countdownValue = REFRESH_INTERVAL / 1000; updateCountdownDisplay();
+            countdownTimer = setInterval(() => { countdownValue--; updateCountdownDisplay(); if (countdownValue <= 0) checkAllServices(); }, 1000);
+        }
+        function resetCountdown() { countdownValue = REFRESH_INTERVAL / 1000; updateCountdownDisplay(); }
+        function updateCountdownDisplay() { countdownEl.textContent = countdownValue > 60 ? countdownValue : `${Math.floor(countdownValue / 60)}:${(countdownValue % 60).toString().padStart(2, '0')}`; }
+        document.addEventListener('DOMContentLoaded', () => { renderServices(); checkAllServices(); startCountdown(); refreshBtn.addEventListener('click', () => checkAllServices()); });
+    </script>
+</body>
+</html>
