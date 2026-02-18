@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Status Checker</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -19,10 +15,7 @@
             color: #333;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1200px; margin: 0 auto; }
 
         header {
             text-align: center;
@@ -33,38 +26,19 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        h1 {
-            font-size: 28px;
-            margin-bottom: 8px;
-            color: #2c3e50;
-        }
+        h1 { font-size: 28px; margin-bottom: 8px; color: #2c3e50; }
 
-        .last-updated {
-            font-size: 12px;
-            color: #7f8c8d;
-            margin-top: 10px;
-        }
+        .subtitle { font-size: 13px; color: #7f8c8d; margin-bottom: 10px; }
+
+        .last-updated { font-size: 12px; color: #7f8c8d; margin-top: 10px; }
 
         .refresh-button {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-top: 10px;
-            transition: background 0.3s;
+            background: #3498db; color: white; border: none;
+            padding: 10px 20px; border-radius: 5px; cursor: pointer;
+            font-size: 14px; margin-top: 10px; transition: background 0.3s;
         }
-
-        .refresh-button:hover {
-            background: #2980b9;
-        }
-
-        .refresh-button.loading {
-            background: #95a5a6;
-            cursor: not-allowed;
-        }
+        .refresh-button:hover { background: #2980b9; }
+        .refresh-button.loading { background: #95a5a6; cursor: not-allowed; }
 
         .categories {
             display: grid;
@@ -81,369 +55,447 @@
         }
 
         .category-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 16px;
-            padding-bottom: 10px;
+            font-size: 16px; font-weight: 600; color: #2c3e50;
+            margin-bottom: 16px; padding-bottom: 10px;
             border-bottom: 2px solid #ecf0f1;
         }
 
         .service {
-            display: flex;
-            align-items: center;
-            margin-bottom: 12px;
-            padding: 10px;
-            border-radius: 6px;
-            background: #f8f9fa;
-            transition: background 0.3s;
+            display: flex; align-items: center; margin-bottom: 12px;
+            padding: 10px; border-radius: 6px; background: #f8f9fa;
+            transition: background 0.3s; text-decoration: none;
         }
-
-        .service:hover {
-            background: #ecf0f1;
-        }
+        .service:hover { background: #ecf0f1; }
 
         .status-bar {
-            width: 8px;
-            height: 24px;
-            border-radius: 3px;
-            margin-right: 12px;
-            flex-shrink: 0;
+            width: 8px; height: 24px; border-radius: 3px;
+            margin-right: 12px; flex-shrink: 0;
         }
-
-        .status-bar.working {
-            background: #27ae60;
-        }
-
-        .status-bar.issues {
-            background: #f39c12;
-        }
-
-        .status-bar.down {
-            background: #e74c3c;
-        }
-
-        .status-bar.checking {
-            background: #95a5a6;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
+        .status-bar.working  { background: #27ae60; }
+        .status-bar.issues   { background: #f39c12; }
+        .status-bar.down     { background: #e74c3c; }
+        .status-bar.checking { background: #95a5a6; animation: pulse 1.5s ease-in-out infinite; }
 
         @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
-        .service-info {
-            flex: 1;
-            min-width: 0;
-        }
+        .service-info { flex: 1; min-width: 0; }
 
-        .service-name {
-            font-size: 14px;
-            font-weight: 500;
-            color: #2c3e50;
-            word-break: break-word;
-        }
+        .service-name { font-size: 14px; font-weight: 500; color: #2c3e50; word-break: break-word; }
 
-        .service-status {
-            font-size: 12px;
-            color: #7f8c8d;
-            margin-top: 2px;
-        }
+        .service-detail { font-size: 11px; color: #95a5a6; margin-top: 2px; }
 
         .status-text {
-            margin-left: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 3px;
-            white-space: nowrap;
+            margin-left: 8px; font-size: 12px; font-weight: 600;
+            padding: 3px 8px; border-radius: 3px; white-space: nowrap;
         }
-
-        .status-text.working {
-            color: #27ae60;
-            background: #d5f4e6;
-        }
-
-        .status-text.issues {
-            color: #e67e22;
-            background: #fdebd0;
-        }
-
-        .status-text.down {
-            color: #c0392b;
-            background: #fadbd8;
-        }
-
-        .status-text.checking {
-            color: #7f8c8d;
-            background: #ecf0f1;
-        }
+        .status-text.working  { color: #27ae60; background: #d5f4e6; }
+        .status-text.issues   { color: #e67e22; background: #fdebd0; }
+        .status-text.down     { color: #c0392b; background: #fadbd8; }
+        .status-text.checking { color: #7f8c8d; background: #ecf0f1; }
 
         .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-top: 30px;
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 16px; margin-bottom: 30px;
         }
 
         .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: white; padding: 20px; border-radius: 8px;
+            text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .stat-number {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
+        .stat-number { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .stat-number.working { color: #27ae60; }
+        .stat-number.issues  { color: #f39c12; }
+        .stat-number.down    { color: #e74c3c; }
 
-        .stat-label {
-            font-size: 12px;
-            color: #7f8c8d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        .stat-label { font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        .stat-number.working {
-            color: #27ae60;
-        }
-
-        .stat-number.issues {
-            color: #f39c12;
-        }
-
-        .stat-number.down {
-            color: #e74c3c;
-        }
-
-        .error-message {
-            background: #fadbd8;
-            color: #c0392b;
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            margin-top: 10px;
+        .fetch-note {
+            background: #eaf4fb; border-left: 4px solid #3498db;
+            color: #2980b9; padding: 10px 14px; border-radius: 4px;
+            font-size: 12px; margin-bottom: 20px; line-height: 1.5;
         }
 
         @media (max-width: 768px) {
-            .categories {
-                grid-template-columns: 1fr;
-            }
-
-            .stats {
-                grid-template-columns: 1fr;
-            }
-
-            h1 {
-                font-size: 22px;
-            }
+            .categories { grid-template-columns: 1fr; }
+            .stats { grid-template-columns: 1fr; }
+            h1 { font-size: 22px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Service Status Checker</h1>
-            <p>Real-time status monitoring for major service providers</p>
-            <button class="refresh-button" id="refreshBtn">Refresh Now</button>
-            <div class="last-updated" id="lastUpdated">Loading...</div>
-        </header>
+<div class="container">
+    <header>
+        <h1>Service Status Checker</h1>
+        <p class="subtitle">Real-time status monitoring via official status APIs</p>
+        <button class="refresh-button" id="refreshBtn">Refresh Now</button>
+        <div class="last-updated" id="lastUpdated">Loading...</div>
+    </header>
 
-        <div id="statsContainer" class="stats"></div>
-        <div id="categoriesContainer" class="categories"></div>
+    <div class="fetch-note">
+        Status is pulled directly from each service's official status API — not just a ping check.
+        Services without a public JSON API fall back to reachability only and are marked accordingly.
     </div>
 
-    <script>
-        const services = {
-            'Hosting & ISP': [
-                { name: 'CloudFlare Hosting', url: 'https://www.cloudflarestatus.com/' },
-                { name: 'Calix Cloud', url: 'https://trust.calix.com/' },
-                { name: 'Genesys', url: 'https://status.mypurecloud.com//' }
-            ],
-            'Streaming': [
-                { name: 'Apple Services', url: 'https://www.apple.com/support/systemstatus/' },
-                { name: 'Netflix', url: 'https://help.netflix.com/en/is-netflix-down' },
-                { name: 'Amazon Cloud Services', url: 'https://status.aws.amazon.com/' },
-                { name: 'Twitch', url: 'https://status.twitch.tv/' }
-            ],
-            'Gaming': [
-                { name: 'PlayStation Services', url: 'https://status.playstation.com/' },
-                { name: 'Xbox Services', url: 'https://support.xbox.com/en-US/xbox-live-status' },
-                { name: 'World of Warcraft', url: 'https://worldofwarcraft.com/en-us/game/status/us' },
-                { name: 'Epic Games/Fortnite', url: 'https://status.epicgames.com/' },
-                { name: 'Steam', url: 'https://steamstat.us/' },
-                { name: 'Activision', url: 'https://support.activision.com/onlineservices' },
-                { name: 'Nintendo Online', url: 'https://www.nintendo.co.jp/netinfo/en_GB/index.html' }
-            ],
-            'Communication': [
-                { name: 'Discord', url: 'https://discordstatus.com/' },
-                { name: 'Google Services', url: 'https://www.google.com/appsstatus#hl=en&v=status' },
-                { name: 'Zoom', url: 'https://status.zoom.us/' },
-                { name: 'Slack', url: 'https://status.slack.com/' }
-            ],
-            'Social Media': [
-                { name: 'Facebook', url: 'https://status.fb.com/' },
-                { name: 'Twitter', url: 'https://api.twitterstat.us/' },
-                { name: 'Instagram', url: 'https://status.ig.com/' },
-                { name: 'Reddit', url: 'https://www.redditstatus.com/' },
-                { name: 'LinkedIn', url: 'https://linkedin.statuspage.io/' }
-            ],
-            'AI Services': [
-                { name: 'Claude', url: 'https://status.claude.com/' },
-                { name: 'ChatGPT', url: 'https://status.openai.com/' },
-                { name: 'Gemini', url: 'https://status.cloud.google.com/' }
-            ]
-        };
+    <div id="statsContainer" class="stats"></div>
+    <div id="categoriesContainer" class="categories"></div>
+</div>
 
-        let statusData = {};
+<script>
+/**
+ * Strategy:
+ *
+ * Most major services use Atlassian Statuspage, which exposes:
+ *   GET https://<domain>/api/v2/status.json
+ *   Response: { status: { indicator: "none"|"minor"|"major"|"critical" } }
+ *
+ * We map those to: working / issues / down
+ *
+ * Services that DON'T use Statuspage get a direct page fetch (no-cors, reachability only).
+ * For those we note that status is "reachable" not "operational" from their own reporting.
+ *
+ * indicator mapping:
+ *   none       → working
+ *   minor      → issues
+ *   major      → issues
+ *   critical   → down
+ *   unreachable→ down
+ */
 
-        async function checkStatus(serviceName, url) {
-            try {
-                const response = await fetch(url, { 
-                    method: 'HEAD',
-                    mode: 'no-cors',
-                    timeout: 5000
-                });
-                
-                // For CORS requests, we can't read the response, but lack of error means reachable
-                return 'working';
-            } catch (error) {
-                return 'down';
-            }
+const services = {
+    'Hosting & ISP': [
+        {
+            name: 'Cloudflare',
+            statusApi: 'https://www.cloudflarestatus.com/api/v2/status.json',
+            url: 'https://www.cloudflarestatus.com/'
+        },
+        {
+            name: 'Calix Cloud',
+            statusApi: 'https://trust.calix.com/api/v2/status.json',
+            url: 'https://trust.calix.com/'
+        },
+        {
+            name: 'Genesys',
+            statusApi: 'https://status.mypurecloud.com/api/v2/status.json',
+            url: 'https://status.mypurecloud.com/'
         }
-
-        async function checkAllServices() {
-            statusData = {};
-            
-            for (const [category, serviceList] of Object.entries(services)) {
-                statusData[category] = {};
-                
-                for (const service of serviceList) {
-                    statusData[category][service.name] = {
-                        status: 'checking',
-                        url: service.url
-                    };
-                }
-            }
-
-            renderUI();
-
-            // Stagger requests to avoid overwhelming
-            for (const [category, serviceList] of Object.entries(services)) {
-                for (const service of serviceList) {
-                    setTimeout(async () => {
-                        const status = await checkStatus(service.name, service.url);
-                        statusData[category][service.name].status = status;
-                        renderUI();
-                    }, Math.random() * 2000);
-                }
-            }
-
-            updateTimestamp();
+    ],
+    'Streaming': [
+        {
+            name: 'Amazon Web Services',
+            statusApi: 'https://health.aws.amazon.com/public/currentevents', // not Statuspage — reachability
+            url: 'https://status.aws.amazon.com/',
+            fallbackOnly: true
+        },
+        {
+            name: 'Twitch',
+            statusApi: 'https://status.twitch.tv/api/v2/status.json',
+            url: 'https://status.twitch.tv/'
+        },
+        {
+            name: 'Apple Services',
+            url: 'https://www.apple.com/support/systemstatus/',
+            fallbackOnly: true,
+            note: 'Apple has no public JSON status API'
+        },
+        {
+            name: 'Netflix',
+            url: 'https://help.netflix.com/en/is-netflix-down',
+            fallbackOnly: true,
+            note: 'Netflix has no public status API'
         }
-
-        function renderUI() {
-            renderStats();
-            renderCategories();
+    ],
+    'Gaming': [
+        {
+            name: 'PlayStation Network',
+            statusApi: 'https://status.playstation.com/api/v2/status.json',
+            url: 'https://status.playstation.com/'
+        },
+        {
+            name: 'Xbox Live',
+            url: 'https://support.xbox.com/en-US/xbox-live-status',
+            fallbackOnly: true,
+            note: 'Xbox uses a custom status page without a public JSON API'
+        },
+        {
+            name: 'Epic Games / Fortnite',
+            statusApi: 'https://status.epicgames.com/api/v2/status.json',
+            url: 'https://status.epicgames.com/'
+        },
+        {
+            name: 'Steam',
+            url: 'https://steamstat.us/',
+            fallbackOnly: true,
+            note: 'steamstat.us is third-party; no official JSON endpoint'
+        },
+        {
+            name: 'Activision',
+            url: 'https://support.activision.com/onlineservices',
+            fallbackOnly: true,
+            note: 'No public status API'
+        },
+        {
+            name: 'Nintendo Online',
+            url: 'https://www.nintendo.co.jp/netinfo/en_GB/index.html',
+            fallbackOnly: true,
+            note: 'No public JSON API'
         }
-
-        function renderStats() {
-            let working = 0, issues = 0, down = 0;
-
-            for (const category in statusData) {
-                for (const service in statusData[category]) {
-                    const status = statusData[category][service].status;
-                    if (status === 'working') working++;
-                    else if (status === 'issues') issues++;
-                    else if (status === 'down') down++;
-                }
-            }
-
-            const statsHTML = `
-                <div class="stat-card">
-                    <div class="stat-number working">${working}</div>
-                    <div class="stat-label">Operational</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number issues">${issues}</div>
-                    <div class="stat-label">Issues</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number down">${down}</div>
-                    <div class="stat-label">Down</div>
-                </div>
-            `;
-
-            document.getElementById('statsContainer').innerHTML = statsHTML;
+    ],
+    'Communication': [
+        {
+            name: 'Discord',
+            statusApi: 'https://discordstatus.com/api/v2/status.json',
+            url: 'https://discordstatus.com/'
+        },
+        {
+            name: 'Zoom',
+            statusApi: 'https://status.zoom.us/api/v2/status.json',
+            url: 'https://status.zoom.us/'
+        },
+        {
+            name: 'Slack',
+            statusApi: 'https://status.slack.com/api/v2.0.0/current',
+            url: 'https://status.slack.com/',
+            slackFormat: true   // Slack uses a custom format
+        },
+        {
+            name: 'Google Workspace',
+            url: 'https://www.google.com/appsstatus',
+            fallbackOnly: true,
+            note: 'Google uses a custom dashboard without a public JSON API'
         }
-
-        function renderCategories() {
-            let html = '';
-
-            for (const [category, serviceList] of Object.entries(services)) {
-                html += `<div class="category">
-                    <div class="category-title">${category}</div>`;
-
-                for (const service of serviceList) {
-                    const data = statusData[category][service.name] || { status: 'checking' };
-                    const status = data.status;
-
-                    html += `
-                        <div class="service">
-                            <div class="status-bar ${status}"></div>
-                            <div class="service-info">
-                                <div class="service-name">${service.name}</div>
-                            </div>
-                            <span class="status-text ${status}">
-                                ${status.charAt(0).toUpperCase() + status.slice(1)}
-                            </span>
-                        </div>
-                    `;
-                }
-
-                html += `</div>`;
-            }
-
-            document.getElementById('categoriesContainer').innerHTML = html;
+    ],
+    'Social Media': [
+        {
+            name: 'Facebook / Meta',
+            statusApi: 'https://www.metastatus.com/api/v2/status.json',
+            url: 'https://www.metastatus.com/'
+        },
+        {
+            name: 'Reddit',
+            statusApi: 'https://www.redditstatus.com/api/v2/status.json',
+            url: 'https://www.redditstatus.com/'
+        },
+        {
+            name: 'LinkedIn',
+            statusApi: 'https://linkedin.statuspage.io/api/v2/status.json',
+            url: 'https://linkedin.statuspage.io/'
+        },
+        {
+            name: 'X / Twitter',
+            statusApi: 'https://api.twitterstat.us/api/v2/status.json',
+            url: 'https://api.twitterstat.us/'
+        },
+        {
+            name: 'Instagram',
+            url: 'https://www.instagram.com/',
+            fallbackOnly: true,
+            note: 'No public status API separate from Meta'
         }
-
-        function updateTimestamp() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            const dateString = now.toLocaleDateString();
-            document.getElementById('lastUpdated').textContent = `Last checked: ${dateString} at ${timeString}`;
+    ],
+    'AI Services': [
+        {
+            name: 'Claude (Anthropic)',
+            statusApi: 'https://status.anthropic.com/api/v2/status.json',
+            url: 'https://status.anthropic.com/'
+        },
+        {
+            name: 'ChatGPT / OpenAI',
+            statusApi: 'https://status.openai.com/api/v2/status.json',
+            url: 'https://status.openai.com/'
+        },
+        {
+            name: 'Google Cloud / Gemini',
+            statusApi: 'https://status.cloud.google.com/incidents.json',
+            url: 'https://status.cloud.google.com/',
+            googleFormat: true
         }
+    ]
+};
 
-        document.getElementById('refreshBtn').addEventListener('click', async () => {
-            const btn = document.getElementById('refreshBtn');
-            btn.classList.add('loading');
-            btn.disabled = true;
-            btn.textContent = 'Checking...';
+// Map Statuspage indicator to our three states
+function indicatorToStatus(indicator) {
+    if (!indicator || indicator === 'none') return 'working';
+    if (indicator === 'critical') return 'down';
+    return 'issues'; // minor, major, maintenance
+}
 
-            await checkAllServices();
+// Slack returns a different schema
+function parseSlack(data) {
+    // { status: "ok" | "active" | "disruption" }
+    const s = data && data.status;
+    if (!s || s === 'ok') return 'working';
+    if (s === 'active') return 'issues';
+    return 'down';
+}
 
-            btn.classList.remove('loading');
-            btn.disabled = false;
-            btn.textContent = 'Refresh Now';
+// Google Cloud doesn't have a clean status.json; we look at open incidents
+function parseGoogle(data) {
+    if (!Array.isArray(data)) return 'working';
+    const open = data.filter(i => !i.end);
+    if (open.length === 0) return 'working';
+    if (open.length <= 2) return 'issues';
+    return 'down';
+}
+
+async function fetchStatus(service) {
+    if (service.fallbackOnly) {
+        // Reachability-only check via no-cors HEAD
+        try {
+            await fetch(service.url, { method: 'HEAD', mode: 'no-cors' });
+            return { status: 'working', detail: service.note || 'Reachable (no API available)' };
+        } catch {
+            return { status: 'down', detail: 'Unreachable' };
+        }
+    }
+
+    try {
+        const res = await fetch(service.statusApi, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+            // no mode restriction — these are public CORS-enabled APIs
         });
 
-        // Initial load
-        checkAllServices();
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
 
-        // Auto-refresh every 5 minutes
-        setInterval(checkAllServices, 5 * 60 * 1000);
-    </script>
+        if (service.slackFormat) {
+            return { status: parseSlack(data), detail: data.status || '' };
+        }
+
+        if (service.googleFormat) {
+            return { status: parseGoogle(data), detail: `${Array.isArray(data) ? data.filter(i=>!i.end).length : 0} open incidents` };
+        }
+
+        // Standard Statuspage format
+        const indicator = data?.status?.indicator;
+        const description = data?.status?.description || '';
+        return { status: indicatorToStatus(indicator), detail: description };
+
+    } catch (err) {
+        // API fetch failed — try reachability fallback
+        try {
+            await fetch(service.url, { method: 'HEAD', mode: 'no-cors' });
+            return { status: 'issues', detail: 'Status API unreachable — page is reachable' };
+        } catch {
+            return { status: 'down', detail: 'Unreachable' };
+        }
+    }
+}
+
+let statusData = {};
+
+async function checkAllServices() {
+    // Initialize all as checking
+    statusData = {};
+    for (const [cat, list] of Object.entries(services)) {
+        statusData[cat] = {};
+        for (const svc of list) {
+            statusData[cat][svc.name] = { status: 'checking', detail: '' };
+        }
+    }
+    renderUI();
+
+    // Fan out all checks concurrently, update as each resolves
+    const promises = [];
+    for (const [cat, list] of Object.entries(services)) {
+        for (const svc of list) {
+            const p = fetchStatus(svc).then(result => {
+                statusData[cat][svc.name] = result;
+                renderUI();
+            }).catch(() => {
+                statusData[cat][svc.name] = { status: 'down', detail: 'Error' };
+                renderUI();
+            });
+            promises.push(p);
+        }
+    }
+
+    await Promise.allSettled(promises);
+    updateTimestamp();
+}
+
+function renderUI() {
+    renderStats();
+    renderCategories();
+}
+
+function renderStats() {
+    let working = 0, issues = 0, down = 0;
+    for (const cat in statusData) {
+        for (const svc in statusData[cat]) {
+            const s = statusData[cat][svc].status;
+            if (s === 'working') working++;
+            else if (s === 'issues') issues++;
+            else if (s === 'down') down++;
+        }
+    }
+
+    document.getElementById('statsContainer').innerHTML = `
+        <div class="stat-card">
+            <div class="stat-number working">${working}</div>
+            <div class="stat-label">Operational</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number issues">${issues}</div>
+            <div class="stat-label">Issues</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number down">${down}</div>
+            <div class="stat-label">Down</div>
+        </div>
+    `;
+}
+
+function renderCategories() {
+    let html = '';
+    for (const [cat, list] of Object.entries(services)) {
+        html += `<div class="category"><div class="category-title">${cat}</div>`;
+        for (const svc of list) {
+            const data = statusData[cat]?.[svc.name] || { status: 'checking', detail: '' };
+            const { status, detail } = data;
+            const label = status === 'working' ? 'Operational'
+                        : status === 'issues'  ? 'Issues'
+                        : status === 'down'    ? 'Down'
+                        : 'Checking...';
+            html += `
+                <a class="service" href="${svc.url}" target="_blank" rel="noopener">
+                    <div class="status-bar ${status}"></div>
+                    <div class="service-info">
+                        <div class="service-name">${svc.name}</div>
+                        ${detail ? `<div class="service-detail">${detail}</div>` : ''}
+                    </div>
+                    <span class="status-text ${status}">${label}</span>
+                </a>
+            `;
+        }
+        html += `</div>`;
+    }
+    document.getElementById('categoriesContainer').innerHTML = html;
+}
+
+function updateTimestamp() {
+    const now = new Date();
+    document.getElementById('lastUpdated').textContent =
+        `Last checked: ${now.toLocaleDateString()} at ${now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})}`;
+}
+
+document.getElementById('refreshBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('refreshBtn');
+    btn.classList.add('loading');
+    btn.disabled = true;
+    btn.textContent = 'Checking...';
+    await checkAllServices();
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    btn.textContent = 'Refresh Now';
+});
+
+checkAllServices();
+setInterval(checkAllServices, 5 * 60 * 1000);
+</script>
 </body>
 </html>
