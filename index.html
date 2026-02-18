@@ -136,8 +136,7 @@
     </header>
 
     <div class="fetch-note">
-        Status is pulled directly from each service's official status API — not just a ping check.
-        Services without a public JSON API fall back to reachability only and are marked accordingly.
+        Status is pulled from each service's official API where CORS is supported. Services whose APIs block cross-origin requests fall back to reachability checks against the main domain — those show as Operational if the site responds, but can't reflect actual incident data. For those, check the linked status page directly.
     </div>
 
     <div id="statsContainer" class="stats"></div>
@@ -192,8 +191,9 @@ const services = {
         },
         {
             name: 'Twitch',
-            statusApi: 'https://status.twitch.tv/api/v2/status.json',
-            url: 'https://status.twitch.tv/'
+            url: 'https://twitch.tv',
+            fallbackOnly: true,
+            note: 'Status API does not support CORS'
         },
         {
             name: 'Apple Services',
@@ -211,8 +211,9 @@ const services = {
     'Gaming': [
         {
             name: 'PlayStation Network',
-            statusApi: 'https://status.playstation.com/api/v2/status.json',
-            url: 'https://status.playstation.com/'
+            url: 'https://www.playstation.com',
+            fallbackOnly: true,
+            note: 'Status API does not support CORS'
         },
         {
             name: 'Xbox Live',
@@ -252,14 +253,15 @@ const services = {
         },
         {
             name: 'Zoom',
-            statusApi: 'https://status.zoom.us/api/v2/status.json',
-            url: 'https://status.zoom.us/'
+            url: 'https://zoom.us',
+            fallbackOnly: true,
+            note: 'Status API does not support CORS'
         },
         {
             name: 'Slack',
-            statusApi: 'https://status.slack.com/api/v2.0.0/current',
-            url: 'https://status.slack.com/',
-            slackFormat: true   // Slack uses a custom format
+            url: 'https://slack.com',
+            fallbackOnly: true,
+            note: 'Status API does not support CORS'
         },
         {
             name: 'Google Workspace',
