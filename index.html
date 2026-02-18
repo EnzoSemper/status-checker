@@ -376,10 +376,12 @@ async function fetchStatus(service) {
         return { status: indicatorToStatus(indicator), detail: description };
 
     } catch (err) {
-        // API fetch failed — try reachability fallback
+        // API fetch failed (CORS, network, etc.) — fall back to reachability only.
+        // We do NOT report 'issues' here because a failed API call tells us nothing
+        // about service health — it just means we couldn't reach the status endpoint.
         try {
             await fetch(service.url, { method: 'HEAD', mode: 'no-cors' });
-            return { status: 'issues', detail: 'Status API unreachable — page is reachable' };
+            return { status: 'working', detail: 'Status API unavailable — site is reachable' };
         } catch {
             return { status: 'down', detail: 'Unreachable' };
         }
