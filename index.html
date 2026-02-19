@@ -4,134 +4,206 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Status Checker</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0d0f14;
             min-height: 100vh;
             padding: 20px;
-            color: #333;
+            color: #c8d0e0;
         }
 
         .container { max-width: 1200px; margin: 0 auto; }
 
+        /* ── HEADER ── */
         header {
             text-align: center;
-            margin-bottom: 40px;
-            padding: 20px;
-            background: white;
+            margin-bottom: 16px;
+            padding: 24px 28px 22px;
+            background: linear-gradient(135deg, #13161e 0%, #0e1420 100%);
+            border: 1px solid #252a38;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 39px,
+                rgba(79,156,249,0.03) 39px, rgba(79,156,249,0.03) 40px);
+            pointer-events: none;
+        }
+        header > * { position: relative; z-index: 1; }
+
+        h1 {
+            font-size: 26px; font-weight: 300; color: #e8edf8;
+            letter-spacing: -0.02em; margin-bottom: 8px;
+        }
+        h1 strong { font-weight: 600; color: #ffffff; }
+
+        .subtitle {
+            font-size: 13px; color: #6b7590; margin-bottom: 10px;
         }
 
-        h1 { font-size: 28px; margin-bottom: 8px; color: #2c3e50; }
-
-        .subtitle { font-size: 13px; color: #7f8c8d; margin-bottom: 10px; }
-
-        .last-updated { font-size: 12px; color: #7f8c8d; margin-top: 10px; }
+        .last-updated {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px; color: #3a4055;
+            letter-spacing: 0.06em; margin-top: 10px;
+        }
 
         .refresh-button {
-            background: #3498db; color: white; border: none;
-            padding: 10px 20px; border-radius: 5px; cursor: pointer;
-            font-size: 14px; margin-top: 10px; transition: background 0.3s;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            background: #1a3a6e; color: #4f9cf9;
+            border: 1px solid rgba(79,156,249,0.3);
+            padding: 8px 18px; border-radius: 5px;
+            cursor: pointer; margin-top: 10px;
+            transition: background 0.15s, border-color 0.15s;
         }
-        .refresh-button:hover { background: #2980b9; }
-        .refresh-button.loading { background: #95a5a6; cursor: not-allowed; }
+        .refresh-button:hover {
+            background: #1f4580; border-color: rgba(79,156,249,0.5);
+        }
+        .refresh-button.loading {
+            background: #1a1e28; color: #3a4055;
+            border-color: #252a38; cursor: not-allowed;
+        }
 
+        /* ── FETCH NOTE ── */
+        .fetch-note {
+            background: rgba(79,156,249,0.07);
+            border: 1px solid rgba(79,156,249,0.15);
+            border-radius: 6px;
+            color: #6b7590; padding: 12px 16px;
+            font-size: 12px; margin-bottom: 16px;
+            line-height: 1.6;
+            display: flex; gap: 10px; align-items: flex-start;
+        }
+        .fetch-note::before {
+            content: 'ℹ'; font-size: 14px; color: #4f9cf9;
+            flex-shrink: 0; margin-top: 1px;
+        }
+
+        /* ── STATS ── */
+        .stats {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 10px; margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: #13161e; border: 1px solid #252a38;
+            border-radius: 7px; padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 30px; font-weight: 700; margin-bottom: 8px; line-height: 1;
+        }
+        .stat-number.working { color: #3ecf8e; }
+        .stat-number.issues  { color: #f5a623; }
+        .stat-number.down    { color: #f56565; }
+
+        .stat-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px; color: #3a4055;
+            text-transform: uppercase; letter-spacing: 0.12em;
+        }
+
+        /* ── CATEGORIES ── */
         .categories {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 24px;
-            margin-bottom: 30px;
+            gap: 10px;
+            margin-bottom: 20px;
         }
 
         .category {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: #13161e; border: 1px solid #252a38;
+            border-radius: 7px; overflow: hidden;
         }
 
         .category-title {
-            font-size: 16px; font-weight: 600; color: #2c3e50;
-            margin-bottom: 16px; padding-bottom: 10px;
-            border-bottom: 2px solid #ecf0f1;
+            background: #1a1e28; border-bottom: 1px solid #252a38;
+            padding: 9px 16px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px; font-weight: 600;
+            letter-spacing: 0.08em; text-transform: uppercase; color: #c8d0e0;
         }
 
+        /* ── SERVICE ROW ── */
         .service {
-            display: flex; align-items: center; margin-bottom: 12px;
-            padding: 10px; border-radius: 6px; background: #f8f9fa;
-            transition: background 0.3s; text-decoration: none;
+            display: flex; align-items: center;
+            padding: 9px 16px;
+            border-bottom: 1px solid #1a1e28;
+            text-decoration: none;
+            background: transparent;
+            transition: background 0.1s;
         }
-        .service:hover { background: #ecf0f1; }
+        .service:last-child { border-bottom: none; }
+        .service:hover { background: rgba(79,156,249,0.05); }
 
         .status-bar {
-            width: 8px; height: 24px; border-radius: 3px;
-            margin-right: 12px; flex-shrink: 0;
+            width: 3px; height: 28px; border-radius: 2px;
+            margin-right: 14px; flex-shrink: 0;
         }
-        .status-bar.working  { background: #27ae60; }
-        .status-bar.issues   { background: #f39c12; }
-        .status-bar.down     { background: #e74c3c; }
-        .status-bar.checking { background: #95a5a6; animation: pulse 1.5s ease-in-out infinite; }
+        .status-bar.working  { background: #3ecf8e; box-shadow: 0 0 6px rgba(62,207,142,0.25); }
+        .status-bar.issues   { background: #f5a623; box-shadow: 0 0 6px rgba(245,166,35,0.25); }
+        .status-bar.down     { background: #f56565; box-shadow: 0 0 6px rgba(245,101,101,0.25); }
+        .status-bar.checking { background: #2f3650; animation: pulse 1.5s ease-in-out infinite; }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            50% { opacity: 0.3; }
         }
 
         .service-info { flex: 1; min-width: 0; }
 
-        .service-name { font-size: 14px; font-weight: 500; color: #2c3e50; word-break: break-word; }
+        .service-name {
+            font-size: 12.5px; font-weight: 600; color: #c8d0e0;
+            word-break: break-word; line-height: 1.4;
+        }
+        .service:hover .service-name { color: #e8edf8; }
 
-        .service-detail { font-size: 11px; color: #95a5a6; margin-top: 2px; }
+        .service-detail {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px; color: #3a4055;
+            margin-top: 2px; letter-spacing: 0.02em;
+        }
 
         .status-text {
-            margin-left: 8px; font-size: 12px; font-weight: 600;
-            padding: 3px 8px; border-radius: 3px; white-space: nowrap;
+            margin-left: 10px; flex-shrink: 0;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px; font-weight: 700;
+            padding: 3px 8px; border-radius: 3px;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            white-space: nowrap;
         }
-        .status-text.working  { color: #27ae60; background: #d5f4e6; }
-        .status-text.issues   { color: #e67e22; background: #fdebd0; }
-        .status-text.down     { color: #c0392b; background: #fadbd8; }
-        .status-text.checking { color: #7f8c8d; background: #ecf0f1; }
+        .status-text.working  { color: #3ecf8e; background: rgba(62,207,142,0.1);   border: 1px solid rgba(62,207,142,0.2); }
+        .status-text.issues   { color: #f5a623; background: rgba(245,166,35,0.08);  border: 1px solid rgba(245,166,35,0.2); }
+        .status-text.down     { color: #f56565; background: rgba(245,101,101,0.08); border: 1px solid rgba(245,101,101,0.2); }
+        .status-text.checking { color: #3a4055; background: #1a1e28;               border: 1px solid #252a38; }
 
-        .stats {
-            display: grid; grid-template-columns: repeat(3, 1fr);
-            gap: 16px; margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: white; padding: 20px; border-radius: 8px;
-            text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .stat-number { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
-        .stat-number.working { color: #27ae60; }
-        .stat-number.issues  { color: #f39c12; }
-        .stat-number.down    { color: #e74c3c; }
-
-        .stat-label { font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; }
-
-        .fetch-note {
-            background: #eaf4fb; border-left: 4px solid #3498db;
-            color: #2980b9; padding: 10px 14px; border-radius: 4px;
-            font-size: 12px; margin-bottom: 20px; line-height: 1.5;
-        }
-
+        /* ── RESPONSIVE ── */
         @media (max-width: 768px) {
             .categories { grid-template-columns: 1fr; }
+            .stats { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 480px) {
             .stats { grid-template-columns: 1fr; }
-            h1 { font-size: 22px; }
+            body { padding: 12px; }
         }
     </style>
 </head>
 <body>
 <div class="container">
     <header>
-        <h1>Service Status Checker</h1>
+        <h1>Service <strong>Status</strong></h1>
         <p class="subtitle">Real-time status monitoring via official status APIs</p>
-        <button class="refresh-button" id="refreshBtn">Refresh Now</button>
+        <button class="refresh-button" id="refreshBtn">↺ Refresh Now</button>
         <div class="last-updated" id="lastUpdated">Loading...</div>
     </header>
 
@@ -455,9 +527,19 @@ function renderStats() {
 }
 
 function renderCategories() {
+    const ICONS = {
+        'Hosting & ISP': '🏗️',
+        'Streaming':     '📺',
+        'Gaming':        '🎮',
+        'Communication': '💬',
+        'Social Media':  '🌐',
+        'AI Services':   '🤖'
+    };
+
     let html = '';
     for (const [cat, list] of Object.entries(services)) {
-        html += `<div class="category"><div class="category-title">${cat}</div>`;
+        const icon = ICONS[cat] || '📋';
+        html += `<div class="category"><div class="category-title">${icon}&nbsp; ${cat}</div>`;
         for (const svc of list) {
             const data = statusData[cat]?.[svc.name] || { status: 'checking', detail: '' };
             const { status, detail } = data;
@@ -495,7 +577,7 @@ document.getElementById('refreshBtn').addEventListener('click', async () => {
     await checkAllServices();
     btn.classList.remove('loading');
     btn.disabled = false;
-    btn.textContent = 'Refresh Now';
+    btn.textContent = '↺ Refresh Now';
 });
 
 checkAllServices();
